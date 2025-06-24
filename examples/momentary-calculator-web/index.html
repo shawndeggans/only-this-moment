@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Momentary Calculator Demo</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .demo-container {
+            text-align: center;
+            color: white;
+            max-width: 600px;
+            padding: 2rem;
+        }
+
+        .manifesto-intro {
+            margin-bottom: 3rem;
+        }
+
+        .manifesto-intro h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .manifesto-intro p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .manifest-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            margin: 1rem;
+        }
+
+        .manifest-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .manifest-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .calculator-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            z-index: 1000;
+            min-width: 400px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .calculator-container.manifested {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .calculator-container.dissolving {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.9);
+        }
+
+        .calculator-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .dissolution-timer {
+            background: #ff6b6b;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .calculator-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .form-group label {
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .operands-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .operands-group input {
+            flex: 1;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e1e5e9;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .result-display {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-display.error {
+            border-left-color: #ff6b6b;
+            background: #fff5f5;
+        }
+
+        .user-state-demo {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .memory-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            z-index: 1001;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-active {
+            background: #4caf50;
+            animation: pulse 1s infinite;
+        }
+
+        .status-dissolving {
+            background: #ff9800;
+        }
+
+        .status-dissolved {
+            background: #f44336;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="manifesto-intro">
+            <h1>Momentary Calculator</h1>
+            <p>Experience ephemeral software that manifests when needed</p>
+            <p>No data persistence • No tracking • Complete dissolution</p>
+            <p>Click below to manifest a calculator for one specific task</p>
+        </div>
+        
+        <button id="manifestBtn" class="manifest-button">
+            ✨ Manifest Calculator
+        </button>
+
+        <div class="user-state-demo">
+            <h3>User-Owned State (BYOS) Demo</h3>
+            <p>Your calculation preferences (simulated):</p>
+            <label>
+                Precision: 
+                <select id="precision">
+                    <option value="">Default (full precision)</option>
+                    <option value="0">0 decimal places</option>
+                    <option value="1">1 decimal place</option>
+                    <option value="2" selected>2 decimal places</option>
+                    <option value="3">3 decimal places</option>
+                </select>
+            </label>
+        </div>
+    </div>
+
+    <div id="overlay" class="overlay"></div>
+    
+    <div id="calculatorContainer" class="calculator-container">
+        <div class="calculator-header">
+            <h2>Momentary Calculator</h2>
+            <div id="dissolutionTimer" class="dissolution-timer">30s</div>
+        </div>
+        
+        <form id="calculatorForm" class="calculator-form">
+            <div class="form-group">
+                <label for="operation">Operation:</label>
+                <select id="operation" required>
+                    <option value="">Select operation</option>
+                    <option value="add">Addition (+)</option>
+                    <option value="subtract">Subtraction (-)</option>
+                    <option value="multiply">Multiplication (×)</option>
+                    <option value="divide">Division (÷)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Numbers:</label>
+                <div class="operands-group">
+                    <input type="number" id="operand1" placeholder="First number" required step="any">
+                    <input type="number" id="operand2" placeholder="Second number" required step="any">
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-primary">Calculate</button>
+                <button type="button" id="dissolveBtn" class="btn btn-secondary">Dissolve Now</button>
+            </div>
+        </form>
+        
+        <div id="resultDisplay" class="result-display" style="display: none;"></div>
+    </div>
+
+    <div class="memory-indicator">
+        <div>Calculator Status: <span class="status-indicator" id="statusIndicator"></span><span id="statusText">Dissolved</span></div>
+        <div>Memory Usage: <span id="memoryUsage">0 KB</span></div>
+        <div>Active Handles: <span id="activeHandles">0</span></div>
+        <div>Data Persisted: <span id="dataPersisted">None</span></div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

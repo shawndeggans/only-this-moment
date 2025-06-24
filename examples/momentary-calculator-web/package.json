@@ -1,0 +1,26 @@
+{
+  "name": "momentary-calculator-web",
+  "version": "1.0.0",
+  "description": "Web demonstration of momentary calculator following the Momentary Manifesto",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "momentary",
+    "ephemeral",
+    "privacy",
+    "byos",
+    "web-app"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10"
+  }
+}
